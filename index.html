@@ -83,6 +83,17 @@
                 font-size: 0.9rem;
             }
         }
+        .copy-button {
+            background-color: #4CAF50;
+            margin-top: 0.5rem;
+        }
+        .copy-button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -90,13 +101,13 @@
         <h1>Gerador de Link WhatsApp</h1>
         <div class="input-field">
             <label for="phone">Telefone:</label>
-            <input type="tel" id="phone" placeholder="Ex: (85) 99103-0913" required>
+            <input type="tel" id="phone" placeholder="Ex: (85) 99103-0913" required aria-label="Número de telefone">
         </div>
         <div class="input-field">
             <label for="message">Mensagem:</label>
-            <textarea id="message" rows="4" placeholder="Digite sua mensagem aqui" required></textarea>
+            <textarea id="message" rows="4" placeholder="Digite sua mensagem aqui" required aria-label="Mensagem"></textarea>
         </div>
-        <button onclick="generateLink()">Gerar Link</button>
+        <button onclick="generateLink()" aria-label="Gerar link">Gerar Link</button>
         <div id="result"></div>
         <footer>
             Feito com ❤ por Christovão
@@ -105,15 +116,45 @@
 
     <script>
         function generateLink() {
-            const phone = document.getElementById('phone').value.replace(/\D/g, '');
-            const message = encodeURIComponent(document.getElementById('message').value);
-            
-            if (phone && message) {
-                const link = `https://api.whatsapp.com/send?phone=55${phone}&text=${message}`;
-                document.getElementById('result').innerHTML = `<p>Link gerado:</p><a href="${link}" target="_blank">${link}</a>`;
-            } else {
-                document.getElementById('result').innerHTML = '<p style="color: red;">Por favor, preencha todos os campos.</p>';
+            const phoneInput = document.getElementById('phone');
+            const messageInput = document.getElementById('message');
+            const resultDiv = document.getElementById('result');
+
+            const phone = phoneInput.value.replace(/\D/g, '');
+            const message = messageInput.value.trim();
+
+            if (!isValidPhone(phone)) {
+                showError('Por favor, insira um número de telefone válido.');
+                return;
             }
+
+            if (!message) {
+                showError('Por favor, insira uma mensagem.');
+                return;
+            }
+
+            const link = `https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(message)}`;
+            resultDiv.innerHTML = `
+                <p>Link gerado:</p>
+                <a href="${link}" target="_blank">${link}</a>
+                <button class="copy-button" onclick="copyLink('${link}')" aria-label="Copiar link">Copiar Link</button>
+            `;
+        }
+
+        function isValidPhone(phone) {
+            return phone.length >= 10 && phone.length <= 11;
+        }
+
+        function showError(message) {
+            document.getElementById('result').innerHTML = `<p class="error">${message}</p>`;
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Link copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Erro ao copiar link: ', err);
+            });
         }
 
         document.getElementById('phone').addEventListener('input', function (e) {
